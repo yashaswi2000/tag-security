@@ -144,15 +144,18 @@ Flibber encryption by default.)
 
 ## Security issue resolution
 
-* Responsible Disclosures Process. A outline of the project's responsible
-  disclosures process should suspected security issues, incidents, or
-vulnerabilities be discovered both external and internal to the project. The
-outline should discuss communication methods/strategies.
-  * Vulnerability Response Process. Who is responsible for responding to a
-    report. What is the reporting process? How would you respond?
-* Incident Response. A description of the defined procedures for triage,
-  confirmation, notification of vulnerability or security incident, and
-patching/update availability.
+Related security flaws may be reported over the Slack channel or by email to the emissary ingress team. The group responds expeditiously.
+In addition, users may visit https://status.getambassador.io/ where any problems that arise while the active products (Emissary, Edge Stack, Telepresence, Ambassador Cloud) are being fixed will be reported.
+
+**Responsible Disclosures Process**
+
+Assisting with the vulnerability fix, the emissary ingress works with The Common Vulnerability Scoring System (also known as CVSS Scores). In Detail, As soon as the team is able to put up the fix, a patched version will be made available for serious severity problems .The issues with Medium CVSS score will be fixed in the next version, which usually happens in 4-6 weeks or less. In a later version, they address Low 
+
+**Incident Response**
+
+As an API gateway that manages incoming traffic in Kubernetes clusters, Emissary Ingress concentrates on averting any security risks by taking a number of steps. After assigning the issue to a maintainer. The maintainer will investigate a known or existing CVE to determine the problem and the circumstances in which it may be exploited. They will next examine the Emissary/Edge Stack codebase to see if any of the packages listed in the CVE are being used. Or is this merely a matter of a scanner seeing that we have an earlier version of the dependency, or would they really call any of the methods particular to the CVE. If it is not an known vulnerability then maintainers Examine the source to see if there are any exploitable vulnerabilities that are calling functions that are a part of a susceptible package.
+
+whether the problem is serious enough or not , Ambassador Labs and Engineering leadership will analyse it to see whether sending out emails or Slack notifications to users is a required outreach for high enough priority topics. Since Emissary is a distributor of Envoy Proxy, whenever a new CVE is discovered in Envoy, we have time to update Emissary to the most recent builds of Envoy and prepare a release for release as soon as the specifics of the security flaw are made public. 
 
 ## Appendix
 
