@@ -69,6 +69,20 @@ in some way.  For example, if a service has a database and a front-end API, but
 if a vulnerability in either one would compromise the other, then the distinction
 between the database and front-end is not relevant.
 
+|   |     |
+| -- | -- |
+| Platform Adminstrators| Those who modify the configurations of the API gateway. Main focus on maintaining the Platform|
+| Application Developers| Can Modify the Configuration of the API Gateway. Access only limited to Mapping and Routing Configurations|
+| External Users| All the users whose request go through API Gateway|
+|Apiext Server| Implements the Webhook Conversion interface for CRDs.|
+|Diagd (Diagnostic Admin UI and Config Processor)| Provides a diagnostic admin UI, processes cluster changes into Envoy-ready configuration.|
+|Ambex (gRPC Server for Envoy xDS)| Implements xDS APIs for dynamic Envoy configuration.|
+|Envoy Proxy| Handles routing for all user traffic, dynamically updated using xDS services.|
+|Ambassador Agent| Provides connectivity between the cluster and Ambassador Cloud.|
+|Watch All The Things (Watt)| Watches for changes in the Kubernetes cluster, Consul, and the file system.|
+|Entry Point (Entrypoint Binary and Busyambassador) | Manages the startup and coordination of various components in the container.|
+| | |
+
 The means by which actors are isolated should also be described, as this is often
 what prevents an attacker from moving laterally after a compromise.
 
@@ -85,15 +99,22 @@ Monitoring and Logging | <li>Emissarry-ingress</li> <li> Envoy </li> </br> <li>K
 Data Flow | <li>Watt</li> | Watt begins end-to-end data flow from developer configurations to Envoy configurations.
 
 ### Goals
-The intended goals of the projects including the security guarantees the project
- is meant to provide (e.g., Flibble only allows parties with an authorization
-key to change data it stores).
+Goal of emissary-ingress is to act as more native to kubernetes solution for a API Gateway, which supports functions like Layer 7 load balancer + Kubernetes Ingress built on Envoy Proxy. emissary achieves these functionalities leveraging envoy features and kubernetes features.
+
+#### Security Goals
+* Protect the declarative configurations such that no bad actor could modify them intern effect routing paths of the service.
+  - Mitigation: Rbac
+* Provide robust authentication features such that unpermitted accesses are allowed entry to the cluster
+* Provide robust security around TLS features
+* Provide security around service discovery
+* Provide security against attacks like DDos using effective rate limiting.
+
 
 ### Non-goals
-Non-goals that a reasonable reader of the project’s literature could believe may
-be in scope (e.g., Flibble does not intend to stop a party with a key from storing
-an arbitrarily large amount of data, possibly incurring financial cost or overwhelming
- the servers)
+- emissary-ingress doesnt protect against risks such as Kubernetes API Server Bypass, which could have in a few number of ways with bad actors modifiying cluter configurations.
+https://kubernetes.io/docs/concepts/security/api-server-bypass-risks/
+- emissary-ingress doesnt protect against risks such as SQL injections, block malicious traffic, and monitor traffic in realtime. usually this done using a Web Application FireWall and can be integrated into API gateways to mitigrate such risks.
+- 
 
 ## Self-Assessment Use
 
@@ -129,22 +150,38 @@ together, this document and the joint-assessment serve as a cornerstone for if a
 
 ## Secure development practices
 
+Emissary-Ingress is in progress with 94% in Open Source Security Foundation (OpenSSF) best practices. [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/1852/badge)](https://www.bestpractices.dev/projects/1852)
+
 * Development Pipeline.  A description of the testing and assessment processes that
-  the software undergoes as it is developed and built. Be sure to include specific
-information such as if contributors are required to sign commits, if any container
-images immutable and signed, how many reviewers before merging, any automated checks for
-vulnerabilities, etc.
+  All code is maintained in [GitHub](https://github.com/emissary-ingress/emissary) and changes must be reviewed by maintainers.
+  - All the source code is publicly available on github
+  - Development process is done through PRs on the master branch only, and Issue led.
+  - Extensive documentation, resolution and targetted versions for the changes are required to be added to the Issue.
+  - Every PR requires thorough testing, lint checks and corresponding Docs updation.
+  - Commits need to be signed off and commit msgs are expected to be descriptive, include Issue links.
+  - Each PR requires minimum 2 reviewer sign offs to be merged, and Maintainers will merge the PR.
+  - All of the release branches are long-lived and have branch protection enabled, which will be used for security fixes or bug fixes.
+  - Backport statergy: majority of the time patch branch will be based off from master and most Pull Requests will target master. ensuring bugs and fixes arent missed in the Next shipping version.
+  - All PR requests trigger jobs that perform:
+    - Unit Tests
+    -  
+
 * Communication Channels. Reference where you document how to reach your team or
   describe in corresponding section.
   * Internal. How do team members communicate with each other?
+    Team members communicate with each other through the [Community Slack](https://a8r.io/slack), [Github issues](https://github.com/emissary-ingress/emissary/issues) or [Zoom meetings](https://ambassadorlabs.zoom.us/j/86139262248?pwd=bzZlcU96WjAxN2E1RFZFZXJXZ1FwQT09).
   * Inbound. How do users or prospective users communicate with the team?
+    Users communicate with the team through the [Community Slack](https://a8r.io/slack), [Github issues](https://github.com/emissary-ingress/emissary/issues) or [Zoom troubleshooting meetings](https://us02web.zoom.us/j/83032365622).
   * Outbound. How do you communicate with your users? (e.g. flibble-announce@
     mailing list)
+    Team members communicate with users through the [Community Slack](https://a8r.io/slack).
+
 * Ecosystem. How does your software fit into the cloud native ecosystem?  (e.g.
   Flibber is integrated with both Flocker and Noodles which covers
 virtualization for 80% of cloud users. So, our small number of "users" actually
 represents very wide usage across the ecosystem since every virtual instance uses
 Flibber encryption by default.)
+ Emissary-ingress is a specialized control plane for Envoy Proxy. In this architecture, Emissary-ingress translates configuration (in the form of Kubernetes Custom Resources) to Envoy configuration. All actual traffic is directly handled by the high-performance Envoy Proxy. It can route traffic to kubernetes services and directly to the pods aswell as integrate with service meshes like consul, linkerd, isito.
 
 ## Security issue resolution
 
