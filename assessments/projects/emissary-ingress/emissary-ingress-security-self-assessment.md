@@ -61,11 +61,6 @@ Provide information for reviewers who may not be familiar with your project's
 domain or problem area.
 
 ### Actors
-These are the individual parts of your system that interact to provide the 
-desired functionality.  Actors only need to be separate, if they are isolated
-in some way.  For example, if a service has a database and a front-end API, but
-if a vulnerability in either one would compromise the other, then the distinction
-between the database and front-end is not relevant.
 
 |   |     |
 | -- | -- |
@@ -80,9 +75,6 @@ between the database and front-end is not relevant.
 |Watch All The Things (Watt)| Watches for changes in the Kubernetes cluster, Consul, and the file system.|
 |Entry Point (Entrypoint Binary and Busyambassador) | Manages the startup and coordination of various components in the container.|
 | | |
-
-The means by which actors are isolated should also be described, as this is often
-what prevents an attacker from moving laterally after a compromise.
 
 ### Actions
 These are the steps that a project performs in order to provide some service
