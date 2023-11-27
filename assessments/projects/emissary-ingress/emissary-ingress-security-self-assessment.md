@@ -72,6 +72,13 @@ between the database and front-end is not relevant.
 | Platform Adminstrators| Those who modify the configurations of the API gateway. Main focus on maintaining the Platform|
 | Application Developers| Can Modify the Configuration of the API Gateway. Access only limited to Mapping and Routing Configurations|
 | External Users| All the users whose request go through API Gateway|
+|Apiext Server| Implements the Webhook Conversion interface for CRDs.|
+|Diagd (Diagnostic Admin UI and Config Processor)| Provides a diagnostic admin UI, processes cluster changes into Envoy-ready configuration.|
+|Ambex (gRPC Server for Envoy xDS)| Implements xDS APIs for dynamic Envoy configuration.|
+|Envoy Proxy| Handles routing for all user traffic, dynamically updated using xDS services.|
+|Ambassador Agent| Provides connectivity between the cluster and Ambassador Cloud.|
+|Watch All The Things (Watt)| Watches for changes in the Kubernetes cluster, Consul, and the file system.|
+|Entry Point (Entrypoint Binary and Busyambassador) | Manages the startup and coordination of various components in the container.|
 | | |
 
 The means by which actors are isolated should also be described, as this is often
