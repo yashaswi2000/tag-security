@@ -34,10 +34,10 @@ A table at the top for quick reference information, later used for indexing.
 
 |   |  |
 | -- | -- |
-| Software | A link to the software’s repository.  |
-| Security Provider | Yes or No. Is the primary function of the project to support the security of an integrating system?  |
-| Languages | languages the project is written in |
-| SBOM | Software bill of materials.  Link to the libraries, packages, versions used by the project, may also include direct dependencies. |
+| Software | [emissary](https://github.com/emissary-ingress/emissary)  |
+| Security Provider | No |
+| Languages | Python, Golang, make, shell, html, dockerfile |
+| SBOM | Software bill of materials. https://github.com/emissary-ingress/emissary/blob/master/go.mod and https://app.fossa.com/attribution/2a534448-1fa3-442b-b385-caa8c1178c99 |
 | | |
 
 ### Security links
@@ -46,8 +46,8 @@ Provide the list of links to existing security documentation for the project. Yo
 use the table below as an example:
 | Doc | url |
 | -- | -- |
-| Security file | https://my.security.file |
-| Default and optional configs | https://example.org/config |
+| Security file | https://github.com/emissary-ingress/emissary/blob/master/DevDocumentation/SECURITY_RELEASE_PROCESS.md |
+| Default and optional configs | https://www.getambassador.io/docs/emissary/latest/topics/running/environment |
 
 ## Overview
 
@@ -139,6 +139,7 @@ together, this document and the joint-assessment serve as a cornerstone for if a
 
 * Compliance.  List any security standards or sub-sections the project is
   already documented as meeting (PCI-DSS, COBIT, ISO, GDPR, etc.).
+  - PCI DSS 6.6 compliance
 
 ## Secure development practices
 
@@ -156,7 +157,6 @@ Emissary-Ingress is in progress with 94% in Open Source Security Foundation (Ope
   - Backport statergy: majority of the time patch branch will be based off from master and most Pull Requests will target master. ensuring bugs and fixes arent missed in the Next shipping version.
   - All PR requests trigger jobs that perform:
     - Unit Tests
-    - E2E tests
     - lint
     - build
     - generate
@@ -167,6 +167,7 @@ Emissary-Ingress is in progress with 94% in Open Source Security Foundation (Ope
     - check-pytest-unit
     - check-chart
     - trivy-container-scan
+  - E2E tests are also run frequently.
 
 * Communication Channels. Reference where you document how to reach your team or
   describe in corresponding section.
@@ -205,10 +206,13 @@ whether the problem is serious enough or not , Ambassador Labs and Engineering l
 * Known Issues Over Time. List or summarize statistics of past vulnerabilities
   with links. If none have been reported, provide data, if any, about your track
 record in catching issues in code review or automated testing.
-* [CII Best Practices](https://www.coreinfrastructure.org/programs/best-practices-program/).
-  Best Practices. A brief discussion of where the project is at
-  with respect to CII best practices and what it would need to
-  achieve the badge.
+  - [2.2.1](https://www.getambassador.io/docs/emissary/latest/about/known-issues#221) TLS certificates using elliptic curves were incorrectly flagged as invalid. This issue is corrected in Emissary-ingress 2.2.2.
+  - [security compliance issues](https://github.com/emissary-ingress/emissary/issues?q=is%3Aissue+label%3Asecurity%2Fcompliance+is%3Aopen) lists the active issues in security and compliance.
+* [CII Best Practices](https://www.bestpractices.dev/en/projects).
+  Emissary-Ingress is in progress with 94% in Open Source Security Foundation (OpenSSF) best practices. [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/1852/badge)](https://www.bestpractices.dev/projects/1852).
+  - unknown status of dynamic code analysis as: It is SUGGESTED that at least one dynamic analysis tool be applied to any proposed major production release of the software before its release.
+  - unknown status of The process for reporting vulnerabilities on the project site. (missing URL)
+  - If private vulnerability reports are supported, the project MUST include how to send the information in a way that is kept private. (missing URL)
 * Case Studies. Provide context for reviewers by detailing 2-3 scenarios of
   real-world use cases.
 * Related Projects / Vendors. Reflect on times prospective users have asked
