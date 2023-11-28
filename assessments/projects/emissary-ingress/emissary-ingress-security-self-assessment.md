@@ -158,26 +158,25 @@ Emissary-Ingress is in progress with 94% in Open Source Security Foundation (Ope
 * Development Pipeline.  A description of the testing and assessment processes that
   All code is maintained in [GitHub](https://github.com/emissary-ingress/emissary) and changes must be reviewed by maintainers.
   - All the source code is publicly available on github
-  - Development process is done through PRs on the master branch only, and Issue led.
+  - Development process is done through PRs on the master branch only, and Issue led [Issue Template](https://github.com/emissary-ingress/emissary/blob/master/.github/ISSUE_TEMPLATE/Feature_request.md).
   - Extensive documentation, resolution and targetted versions for the changes are required to be added to the Issue.
   - Every PR requires thorough testing, lint checks and corresponding Docs updation.
   - Commits need to be signed off and commit msgs are expected to be descriptive, include Issue links.
   - Each PR requires minimum 2 reviewer sign offs to be merged, and Maintainers will merge the PR.
   - All of the release branches are long-lived and have branch protection enabled, which will be used for security fixes or bug fixes.
   - Backport statergy: majority of the time patch branch will be based off from master and most Pull Requests will target master. ensuring bugs and fixes arent missed in the Next shipping version.
-  - All PR requests trigger jobs that perform:
+  - All PR requests trigger jobs that perform as listed here [jobs](https://github.com/emissary-ingress/emissary/blob/master/.github/workflows/execute-tests-and-promote.yml#L318):
     - Unit Tests
-    - lint
-    - build
-    - generate
-    - check-envoy-protos
-    - check-envoy-version
-    - check-gotest
-    - check-pytest
-    - check-pytest-unit
-    - check-chart
-    - trivy-container-scan
-  - E2E tests are also run frequently.
+    - linting checks for code quality.
+    - Checks for Envoy protobuf changes to find impact on code.
+    - Validation of Envoy version.
+    - Integration Tests.
+    - Validation of Helm chart changes.
+    - Builds and updates container image and the registry.
+    - Container image scanning for vunerabilities(trivy)
+    - E2E tests are also run frequently.
+* Release process:
+  - emissary-ingress has well organised security release process with dedicated team that responds to vulnerabilites quickly as described in [Secure release process](https://github.com/emissary-ingress/emissary/blob/master/DevDocumentation/SECURITY_RELEASE_PROCESS.md)
 
 * Communication Channels. Reference where you document how to reach your team or
   describe in corresponding section.
@@ -189,11 +188,7 @@ Emissary-Ingress is in progress with 94% in Open Source Security Foundation (Ope
     mailing list)
     Team members communicate with users through the [Community Slack](https://a8r.io/slack).
 
-* Ecosystem. How does your software fit into the cloud native ecosystem?  (e.g.
-  Flibber is integrated with both Flocker and Noodles which covers
-virtualization for 80% of cloud users. So, our small number of "users" actually
-represents very wide usage across the ecosystem since every virtual instance uses
-Flibber encryption by default.)
+* Ecosystem. How does your software fit into the cloud native ecosystem?
  Emissary-ingress is a specialized control plane for Envoy Proxy. In this architecture, Emissary-ingress translates configuration (in the form of Kubernetes Custom Resources) to Envoy configuration. All actual traffic is directly handled by the high-performance Envoy Proxy. It can route traffic to kubernetes services and directly to the pods aswell as integrate with service meshes like consul, linkerd, isito.
 
 ## Security issue resolution
