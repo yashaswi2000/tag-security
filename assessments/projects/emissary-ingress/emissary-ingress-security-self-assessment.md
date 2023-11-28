@@ -237,7 +237,7 @@ record in catching issues in code review or automated testing.
   Kong is defined more towards API managment rather than for managing microservices which is the major difference with emissary-ingress.
   - Isito: an open-source service mesh, built on Envoy. A service mesh is designed to manage East/West traffic (traffic between servers and your data center), while an API gateway manages North/South traffic (in and out of your data center). North/South traffic is quite different from East/West traffic (i.e., you don't control the client in the North/South use case). which emissary-ingress's prime focus.
   Isito can be integrated with emissary such that isito handles east/west while emissary-ingress handles north/south.
-*References
+* References
 [Amazon Web Services](https://aws.amazon.com/api-gateway/)
 [Kong](https://docs.konghq.com/gateway/latest/)
 [Isto](https://istio.io/latest/about/service-mesh/)
