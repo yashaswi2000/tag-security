@@ -356,7 +356,7 @@ Emissary Ingress components are typically deployed into one namespace:
 
 * Control:
   * Encryption of logs in transit and at rest via keys and certificates
-RBAC services are utilized within Emissiary and Kubernetes to prevent unauthorized access. This type of access is required to get, list, watch, and update Ingress resources.
+  * RBAC services are utilized within Emissiary and Kubernetes to prevent unauthorized access. This type of access is required to get, list, watch, and update Ingress resources.
 Client certificate validation via CA certificate can be enabled for extra security to validate clients against the server. This allows for client-side mTLS where both Emissary-ingress and the client provide and validate each other’s certificates.
 Data:
 HTTP access
