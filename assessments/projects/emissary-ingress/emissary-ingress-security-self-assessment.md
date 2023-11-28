@@ -104,19 +104,20 @@ Goal of emissary-ingress is to act as more native to kubernetes solution for a A
 * Maintaining resiliance and performance as a API gateway.
 
 #### Security Goals 
-* Protect the declarative configurations such that no bad actor could modify them intern effect routing paths of the service.
-* Ensure that communication between Emissary-ingress components and other services is encrypted using secure protocols, such as TLS.
-* Provide logs and audit trails for actions and events within Emissary-ingress to support security monitoring and incident response.
-* Provide robust authentication features such that unpermitted accesses are allowed entry to the cluster
-* Ensure that default configurations follow security best practices and do not expose unnecessary services or features.
+* Safeguard the declarative settings to prevent any unauthorized entity from altering them, which might potentially disrupt the routing pathways of the service. 
+* Make sure that the communication between Emissary-ingress components and other services is secured using robust protocols, such as Transport Layer Security (TLS). 
+* Supply logs and auditing trails for activities and events occurring inside Emissary-ingress to facilitate security monitoring and incident response. 
+* Implement robust authentication mechanisms to prevent unauthorized login to the cluster. 
+* Assuring that standard settings adhere to security best practices and do not expose superfluous services or functionality. 
 
 ### Non-goals
 - Emissary-ingress doesn't protect against risks such as Kubernetes API Server Bypass, which could have in a few number of ways with bad actors modifiying cluster configurations.
 https://kubernetes.io/docs/concepts/security/api-server-bypass-risks/
-- Emissary-ingress is not responsible for the security of the applications it routes traffic to. Application security is the responsibility of application developers and operators.
-- Emissary-ingress may not handle external user authentication directly.
-- Emissary-ingress focuses on managing external traffic at the edge and may not directly control or secure internal network communications.
-- Emissary-ingress may not handle encryption key management for applications.
+- Emissary-ingress does not bear responsibility for the security of the apps to which it directs traffic.   Application security is within the responsibility of application developers and operators. 
+- Emissary-ingress could not natively support third user authentication. 
+- Emissary-ingress primarily concerns itself with the administration of incoming external traffic at the boundary and may not have direct authority over or ensure the security of internal network connections. 
+- Emissary-ingress does not provide encryption key management for apps. 
+
 
 ## Self-Assessment Use
 
