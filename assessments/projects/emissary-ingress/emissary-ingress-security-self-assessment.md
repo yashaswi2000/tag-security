@@ -490,10 +490,8 @@ Mapping of threats to potential controls or remediations
 | --- | --- | --- | --- |
 | Deployment Architecture |
 | Compromised deployment allows traffic inspection or routing manipulation or change in CRD definitions. | Pod and namespace configuration of Emissary-ingress components deployed into a namespace | strong access controls, monitoring for unexpected traffic patterns, regularly audit configurations for unauthorized changes. |
- |
 | Networking |
 | Unauthorized Diagd, Ambex ports, or interfaces meant only for Envoy for external request interception | The routing of traffic to malicious backend services Intercepting of sensitive external requests or routing requests to malicious backends | Emissary uses Pod networking and Kubernetes services for internal communication. The Envoy proxy handles all external ingress traffic and routing |
- |
 | Storage |
 | Storage as Single Point of failure | Since all the data is mainly stored in ETDC. If by any chance data becomes faulty data will be lost permanently. | Regularly backup etcd data to prevent permanent data loss. Use tools like etcdctl to automate the backup process. | [https://kubernetes.io/docs/tasks/administer-cluster/securing-a-cluster/](https://kubernetes.io/docs/tasks/administer-cluster/securing-a-cluster/)
  |
