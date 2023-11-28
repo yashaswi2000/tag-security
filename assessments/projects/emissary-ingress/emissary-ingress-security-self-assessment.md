@@ -239,5 +239,7 @@ record in catching issues in code review or automated testing.
   Isito can be integrated with emissary such that isito handles east/west while emissary-ingress handles north/south.
 * References
 [Amazon Web Services](https://aws.amazon.com/api-gateway/)
+
 [Kong](https://docs.konghq.com/gateway/latest/)
+
 [Isto](https://istio.io/latest/about/service-mesh/)
