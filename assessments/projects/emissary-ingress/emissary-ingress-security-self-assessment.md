@@ -53,6 +53,8 @@ use the table below as an example:
 
 Formerly known as the Ambassador API Gateway,[Emissary-Ingress](https://www.getambassador.io)([emissary](https://github.com/emissary-ingress/emissary/tree/master )) project is an open-source API gateway that is native to Kubernetes that lets you control inbound traffic to your apps in a Kubernetes cluster. Ingress in Kubernetes refers to controlling external access to services that are operated within the cluster.
 
+![Alt text](image-2.png)
+
 ### Background
 
 Understanding the importance and effects of Emissary Ingress in handling incoming traffic inside Kubernetes clusters would be made easier with some familiarity with the ideas surrounding Kubernetes (Ingress, Services, etc.). Within Kubernetes, Emissary Ingress functions as an Ingress controller. The Kubernetes cluster's ingress controllers manage incoming external traffic and route it to the relevant services.
@@ -92,21 +94,27 @@ Data Flow | Watt | Watt begins end-to-end data flow from developer configuration
 
 ### Goals
 Goal of emissary-ingress is to act as more native to kubernetes solution for a API Gateway, which supports functions like Layer 7 load balancer + Kubernetes Ingress built on Envoy Proxy. emissary achieves these functionalities leveraging envoy features and kubernetes features.
+* provide a ingress solution with easy to setup configuration.
+* Self service capabilities that decouples developers from the platform team.
+* A control plane for envoy that provides extensive configuration capabilities interms of routing,
+  filtering, rate limiting, TLS support.
+* Integrations and extensibility of features like authServices, rate limiting, service mesh, access controls.
+* Maintaining resiliance and performance as a API gateway.
 
-#### Security Goals
+#### Security Goals 
 * Protect the declarative configurations such that no bad actor could modify them intern effect routing paths of the service.
-  - Mitigation: Rbac
+* Ensure that communication between Emissary-ingress components and other services is encrypted using secure protocols, such as TLS.
+* Provide logs and audit trails for actions and events within Emissary-ingress to support security monitoring and incident response.
 * Provide robust authentication features such that unpermitted accesses are allowed entry to the cluster
-* Provide robust security around TLS features
-* Provide security around service discovery
-* Provide security against attacks like DDos using effective rate limiting.
-
+* Ensure that default configurations follow security best practices and do not expose unnecessary services or features.
 
 ### Non-goals
 - Emissary-ingress doesn't protect against risks such as Kubernetes API Server Bypass, which could have in a few number of ways with bad actors modifiying cluster configurations.
 https://kubernetes.io/docs/concepts/security/api-server-bypass-risks/
-- Emissary-ingress doesn't protect against risks such as SQL injections, block malicious traffic, and monitor traffic in realtime. usually this done using a Web Application FireWall and can be integrated into API gateways to mitigrate such risks.
-- 
+- Emissary-ingress is not responsible for the security of the applications it routes traffic to. Application security is the responsibility of application developers and operators.
+- Emissary-ingress may not handle external user authentication directly.
+- Emissary-ingress focuses on managing external traffic at the edge and may not directly control or secure internal network communications.
+- Emissary-ingress may not handle encryption key management for applications.
 
 ## Self-Assessment Use
 
@@ -232,4 +240,3 @@ record in catching issues in code review or automated testing.
   Kong is defined more towards API managment rather than for managing microservices which is the major difference with emissary-ingress.
   - Isito: an open-source service mesh, built on Envoy. A service mesh is designed to manage East/West traffic (traffic between servers and your data center), while an API gateway manages North/South traffic (in and out of your data center). North/South traffic is quite different from East/West traffic (i.e., you don't control the client in the North/South use case). which emissary-ingress's prime focus.
   Isito can be integrated with emissary such that isito handles east/west while emissary-ingress handles north/south.
-  
