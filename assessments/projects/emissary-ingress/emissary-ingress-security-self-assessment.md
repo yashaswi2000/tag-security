@@ -245,3 +245,278 @@ record in catching issues in code review or automated testing.
 [Kong](https://docs.konghq.com/gateway/latest/)
 
 [Isto](https://istio.io/latest/about/service-mesh/)
+
+#
+
+
+# \<Emissary-Ingress\> Lightweight Threat Model
+
+[_TAG-Security_](https://github.com/cncf/tag-security) _\<2023-11-24\>_
+
+_\<_[_https://github.com/Rana-KV/tag-security/issues/3_](https://github.com/Rana-KV/tag-security/issues/3)_\>_
+
+# Overview
+
+- Project: emissary-Ingress [https://github.com/emissary-ingress/emissary/tree/master](https://github.com/emissary-ingress/emissary/tree/master)
+- Intended usage: open-source Kubernetes-native API Gateway
+- Project data classification: Critical
+- Highest risk impact: cluster breach, org takeover?
+- Owner(s) and/or maintainer(s):
+  - Alex Gervais alexgervais
+  - Alice Wasko aliceproxy
+  - David Dymko ddymko
+  - Flynn kflynn
+  - Hamzah Qudsi haq204
+  - Lance Austin lanceea
+  - Luke Shumaker lukeshu
+  - Rafael Schloming rhs
+- Attendees and representation:
+  - \<name (representation, email/GitHub contacts)\>
+
+# Threat Modeling Notes
+
+The emissary-Ingress (emissary) project is an open-source API gateway that is native to Kubernetes and lets you control inbound traffic to your apps in a Kubernetes cluster. It is powered by an envoy proxy, and the emissary acts as a control plane which looks for changes to CRDs and updates the envoy proxy configurations in real-time. It is resilient and high performance comes from using Kubernetes and Envoy. Supports different types of protocols integrates well with service meshes and also provides features like authentication, TLS termination, rate limiting, and WAF integrations.
+
+# Data Dictionary
+
+| **Name** | **Classification/Sensitivity** | **Comments** |
+| --- | --- | --- |
+| Data type | High/Moderate/other | More info |
+| --- | --- | --- |
+| CRDs | High | Kubernetes custom resources that define configs |
+| --- | --- | --- |
+| Snapshots | Moderate | Diagnostics state outputs |
+| --- | --- | --- |
+| Ir | Moderate | Intermediate envoy representations |
+| --- | --- | --- |
+| RBAC Bindings | High | Authentication and authorization rules |
+| --- | --- | --- |
+| Secrets | High | Security sensitive config like certs |
+| Logs, Traces, Metrics | Low |
+ |
+
+#
+
+
+# Control Families
+
+Inapplicable control families can be skipped and marked as "not applicable".
+
+For each control family, we want to ask:
+
+- What does the project implement for this control?
+- What sorts of data passes through that control?
+  - for example, a component may have sensitive data (Secrets Management), but that data never leaves the component's storage via Networking
+- What can an attacker do with access to this project or component?
+- What's the simplest attack against it?
+- Are there mitigations that we recommend (i.e. "Always use an interstitial firewall")?
+- What happens if the component stops working (via DoS or other means)?
+- Have there been similar vulnerabilities in the past? What were the mitigations?
+
+## Deployment Architecture (pod and namespace configuration)
+
+Emissary Ingress components are typically deployed into one namespace:
+
+- **emissary-system** - Holds core infrastructure control plane pods like diagd, ambex etc. May also have an envoy ingress controller.
+
+Pods
+
+- **emissary-ingress** - Main Emissary pod with control plane and Envoy proxy.
+- **emissary-apiext** - Webhook conversion server pod.
+
+Services
+
+- **emissary-ingress** : Core Emissary ingress controller
+- **emissary-apiext** : Kubernetes conversion webhook
+
+Threats:
+
+Compromised deployment allows traffic inspection or routing manipulation
+
+## Networking (internal and external)
+
+- Controls: pod networking and Kubernetes services for internal communication(internal). Envoy proxies handle all external ingress traffic and routing
+- Data: Sensitive snapshot and configuration data shared between control plane components
+- Threats: A simple attack is accessing diagd/Ambex ports or interfaces meant only for Envoy. Could intercept sensitive external requests or route to malicious backends.
+
+## Cryptography
+
+- **Controls** : all the network traffic outgoing from the emissary ingress is encrypted using TLS.
+  - it uses certificates to authenticate clients requesting the services.
+  - Data transfer from ingress to backend services in the cluster is encrypted using TLS.
+  - The Container image of the Emissary ingress should be immutable.
+  - The data stored in the Kubernetes storage ETDC should be Encrypted.
+  - The communication to and from ETDC should be encrypted.
+  - a web hook exposed from the APIEXT should verify the source when it gets a request.
+- **Data** : The Initial configurations of the Emissary Ingress stored in ETDC.
+  - The Snapshot of changes in the cluster is being transferred from WATT to Diadg via ETDC.
+  - The CRD version snapshot is stored in ETDC and being transferred to Webhook.
+  - The data signal and notifications are being sent from WATT and Diadg.
+  - The Envoy config is transferred and persisted in ETDC
+- **Threat** :
+  - The Container image can be altered by the attacker in the storage or while being transferred.
+  - The data stored in ETDC is not encrypted by default, Any attacker who has access to ETDC through other means can hamper the Emissary ingress data stored in ETDC.
+  - The communication to and from ETDC is not encrypted, Attacker can intercept the traffic and hamper the data.
+  - The Webhook exposed from APIEXT does not have any mechanism to verify the source of its request. This allows the attacker to change the CRD's.
+  - Attackers may attempt to hijack an established TLS session to gain unauthorized access.
+  - If the certificate authority (CA) that issued the TLS certificate is compromised, attackers could create fraudulent certificates for the target domain.
+  - Expired, revoked, or improperly configured certificates can lead to security vulnerabilities.
+  - Outage of certificate services blocks ingress traffic
+
+## Multi-tenancy Isolation
+
+- Controls: Relies on Kubernetes namespaces, RBAC, network policies for isolation. Tenant application traffic and access credentials are isolated.
+- Data: isolated namespaces for each tenant and their routing, filters, configuration data.
+- Threats: Loss of RBAC controls risks tenant data leakage, compromised namespace could provide visibility across tenants.
+
+## Secrets Management
+
+- Controls:
+  - N/A
+- Data:
+  - Secrets management is not directly handled by the emissary ingress. It functions with kubernetes clusters which make use of Kubernetes secrets management features to handle sensitive data securely.
+- Threats:
+  - When hackers or unauthorized programs have access to the Kubernetes secrets which are used by the emissary ingress then it may result in the data breaches.
+
+## Authentication and Authorization
+
+- Controls:
+  - The roles are assigned by authorizations and the Kubernetes RBAC. which manages access controls for emissary-ingress.
+  - Emissary could be configured by an AuthService to utilize a third party service for authorization and authentication.
+
+- Data:
+  - Sensitive information like authentication tokens and certificates used by emissary may be kept safely as secrets in Kubernetes.
+  - RBAC rules are established inside the cluster and interact with Kubernetes resources.
+- Threats:
+  - Incorrectly set RBAC rules may result in providing inappropriate privileges.
+  - Credential theft can gain access to the Kubernetes cluster
+
+## Storage
+
+- Control:
+  - All data involved in the process are stored in Kubernetes Storage, **ETDC**.
+  - Cache storage and temp storage is also used for emissary ingress functions.
+  - Data stored in **ETDC** is shared among different components of Emissary ingress. Example: Snapshot stored by **WATT** is fetched by **Diadg**.
+- Data:
+  - Config changes applied to Clusters are stored in the form of Snapshots
+  - ETDC stores snapshots of CRD.
+  - **Cache** stores supporting data to generate Envoy Config from Intermediate representation..
+  - **Temporary storage** is used to store the Intermediate representation.
+  - Final Envoy Configs generated are stored in Kubernetes storage **ETDC**.
+- Threat:
+  - Since all the data is mainly stored in ETDC. It becomes a single point of failure. If by any chance data becomes faulty data will be lost permanently.
+  - Attackers can gain administrative access to ETDC servers through other services running in the cluster. Will have complete control over the emissary ingress data as well.
+  - If ETDC becomes unavailable, Emissary Ingress will not be able to operate.
+  - If other services in the kubernetes cluster exhaust the storage in ETDC, Emissary Ingress data might get lost and Emissary ingress will not be able to operate properly.
+  - Data stored in ETDC is not encrypted.
+
+## Audit and Logging
+
+- Control:
+  - Encryption of logs in transit and at rest via keys and certificates
+  - [RBAC services](https://www.getambassador.io/docs/emissary/latest/topics/running/ingress-controller#:~:text=Emissary%2Dingress%20will%20need%20RBAC,watch%2C%20and%20update%20Ingress%20resources.&text=This%20is%20included%20by%20default,resource%20with%20the%20correct%20ingress.) are utilized within Emissiary and Kubernetes to prevent unauthorized access. This type of access is required to get, list, watch, and update Ingress resources.
+  - [Client certificate validation](https://www.getambassador.io/docs/emissary/latest/howtos/client-cert-validation) via CA certificate can be enabled for extra security to validate clients against the server. This allows for client-side mTLS where both Emissary-ingress and the client provide and validate each other's certificates.
+- Data:
+  - HTTP access
+  - Headers with and without sensitive data
+- Threats:
+  - Tampering and deletion via disabling of log backup policies
+  - Overwriting of log data
+
+# Threat Scenarios
+
+We aim to identify threats at the lowest common denominator of deployment: consider the project at runtime, in a standard (non-hardened) deployment, on a major cloud provider.
+
+Threats should be as broadly applicable as possible to consumers of the project.
+
+Enumerate all approaches that an attacker may take to compromise systems. Once diffuse thinking is complete, double-check the working with [STRIDE](https://en.wikipedia.org/wiki/STRIDE_(security)) and the [CIA triad](https://en.wikipedia.org/wiki/Information_security).
+
+This assessment considers threats in potential threat addresses. Unapplicable areas can be skipped and marked as "not applicable".
+
+For each area, consider:
+
+- An External Attacker without access to the project at runtime or its hosting
+- An External Attacker with valid access to the project at runtime
+- An Internal Attacker with access to hosting environment (cluster or provider)
+- A Malicious Internal User
+
+## Theoretical Threats(STRIDE)
+
+- SPOOFING
+  - Threat-01-S: An outside attacker could do IP address spoofing to bypass access controls and gain information about resources he should not.
+  - Threat-02-S: An internal attacker with malicious intent could pose as admin, or user with elevated privileges and gain access to emissary configurations modifying traffic flow.
+
+- authenticating by mutual TLS could mitigate this by checking user identities.
+
+- TAMPERING
+  - Threat-03-T: An attacker could gain access to Dynamic configuration used by envoy(aDS) and tamper with it leading to rerouting traffic and altered proxy behavior
+  - Threat-04-T: An attacker who gained access could tamper with the emissary's dependencies such as envoy-proxy binaries and could affect the behaviour of the system adversely.
+
+- Using tight integrity verification methods like checksums, signature verifications, audit logging and monitoring and security updates.
+
+- Repudiation
+  - Threat-05-R: An internal user could take advantage of a vulnerability and perform unauthorized actions such as changing the CRDs or modifying hosts, causing deviation in system behavior and denying any responsibility for it.
+
+- Logging and audits need to be comprehensive and use immutable logging systems and verifiable signatures, making it very hard to tamper with it.
+
+- Information Disclosure
+  - Threat-06-I: Information leak through metrics, logs.
+
+Emissary-ingress metrics, and logs could have sensitive information, which could be leaked if inadequate controls are in place over access controls. Leading to data breaches.
+
+- Appropriate access controls in place, encryption for sensitive data and encryption for data in transit could act as mitigations.
+
+- Denial of Service
+  - Threat-07-D: Causing system Outage
+
+An internal attacker could find vulnerabilities in poorly configured RBAC and scale emissary pods down to 0, causing system outages.
+
+- Threat-08-D: Crashing control plane
+
+An attacker could find vulnerabilities that can be leveraged to repeatedly crash the control plane components like ambex, and diag.
+
+- Rate limiting, proxy redundancy, restrictive RBAC policies and availability zone spreads can help.
+
+- Elevation of Privilege
+  - Threat-09-E: An attacker exploiting elevation of privilege in Emissary Ingress might gain unauthorized access to and modify various Kubernetes CRDs, affecting the overall security of the whole cluster.
+
+- Deploy a robust tracking and log system to identify any illegal login attempts, abnormal activities, or changes in authorization that may suggest an increase in privileges.
+
+# Potential Controls Summary
+
+Mapping of threats to potential controls or remediations
+
+| **Threat** | **Description** | **Controls** | **References** |
+| --- | --- | --- | --- |
+| Deployment Architecture |
+| Compromised deployment allows traffic inspection or routing manipulation or change in CRD definitions. | Pod and namespace configuration of Emissary-ingress components deployed into a namespace | strong access controls, monitoring for unexpected traffic patterns, regularly audit configurations for unauthorized changes. |
+ |
+| Networking |
+| Unauthorized Diagd, Ambex ports, or interfaces meant only for Envoy for external request interception | The routing of traffic to malicious backend services Intercepting of sensitive external requests or routing requests to malicious backends | Emissary uses Pod networking and Kubernetes services for internal communication. The Envoy proxy handles all external ingress traffic and routing |
+ |
+| Storage |
+| Storage as Single Point of failure | Since all the data is mainly stored in ETDC. If by any chance data becomes faulty data will be lost permanently. | Regularly backup etcd data to prevent permanent data loss. Use tools like etcdctl to automate the backup process. | [https://kubernetes.io/docs/tasks/administer-cluster/securing-a-cluster/](https://kubernetes.io/docs/tasks/administer-cluster/securing-a-cluster/)
+ |
+| Attack due to common resource | Attackers can gain administrative access to ETDC servers through other services running in the cluster. Will have complete control over the emissary ingress data as well. | Enable encryption for ETDC communication using Transport Layer Security (TLS). This ensures that data in transit is secure.
+Implement client authentication for ETDC to ensure that only authorized entities can access the ETDC cluster.
+ | [https://kubernetes.io/docs/tasks/administer-cluster/securing-a-cluster/](https://kubernetes.io/docs/tasks/administer-cluster/securing-a-cluster/)
+ |
+| Resource Exhaustion attack | If other services in the kubernetes cluster exhaust the storage in ETDC, Emissary Ingress data might get lost and Emissary ingress will not be able to operate properly. | implement storage quotas to limit the amount of storage that can be consumed by individual services. | [https://kubernetes.io/docs/tasks/administer-cluster/securing-a-cluster/](https://kubernetes.io/docs/tasks/administer-cluster/securing-a-cluster/)
+ |
+| Cryptography |
+| Image Alteration attack | The Container image can be altered by the attacker in the storage or while being transferred.
+ | Use secure container registries, such as those supporting HTTPS, and consider image signing and verification mechanisms.
+ | [https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/)
+ |
+| Attack on data at rest | The data stored in ETDC is not encrypted by default, Any attacker who has access to ETDC through other means can hamper the Emissary ingress data stored in ETDC.
+ | To encrypt data stored in ETDC, use the --experimental-encryption-provider-config flag when starting the API server, specifying encryption providers.
+ | [https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/) |
+| Attack on data in transit | The communication to and from ETDC is not encrypted, Attacker can intercept the traffic and hamper the data. | Enable encryption for etcd communication using Transport Layer Security (TLS). This ensures that data in transit is secure. | [https://kubernetes.io/docs/tasks/tls/managing-tls-in-a-cluster/](https://kubernetes.io/docs/tasks/tls/managing-tls-in-a-cluster/)
+ |
+| Multi-Tenancy Isolation |
+| Loss of RBAC controls risks tenant data leakage, and compromised namespace could provide visibility across tenants. | Multi tenancy isolation is critical in platforms that provide shared production environments. | Emissary uses emissary-system namespace for each deployment. Tight and highly restrictive RBAC policies should restrict this. |
+ |
+| Repudiation |
+| Role-Based Access Control | Emissary-ingress will need RBAC permissions to get, list, watch, and update Ingress resources | Enact strict RBAC services – which are already provided within Emissary and Kubernetes – to prevent unauthorized access. This type of access is required to get, list, watch, and update Ingress resources. | [Emissary-ingress](https://www.getambassador.io/docs/emissary/latest/topics/running/ingress-controller#:~:text=Emissary%2Dingress%20will%20need%20RBAC,watch%2C%20and%20update%20Ingress%20resources.&text=This%20is%20included%20by%20default,resource%20with%20the%20correct%20ingress.) |
+| Audit and Logging |
+| Integrity | Tampering and deletion of logs via the disabling of log backup policies and/or the overwriting of log data | Entries should be stored in an immutable format such that data cannot be appended or deleted regardless of user privilege | [Emissary-ingress](https://www.getambassador.io/docs/emissary/latest/topics/running/ambassador#security) |
