@@ -55,7 +55,7 @@ Formerly known as the Ambassador API Gateway,[Emissary-Ingress](https://www.geta
 
 
 
-### Background
+## Background
 
 Understanding the importance and effects of Emissary Ingress in handling incoming traffic inside Kubernetes clusters would be made easier with some familiarity with the ideas surrounding Kubernetes (Ingress, Services, etc.). Within Kubernetes, Emissary Ingress functions as an Ingress controller. The Kubernetes cluster's ingress controllers manage incoming external traffic and route it to the relevant services.
 
