@@ -282,36 +282,15 @@ The emissary-Ingress (emissary) project is an open-source API gateway that is na
 | **Name** | **Classification/Sensitivity** | **Comments** |
 | --- | --- | --- |
 | Data type | High/Moderate/other | More info |
-| --- | --- | --- |
 | CRDs | High | Kubernetes custom resources that define configs |
-| --- | --- | --- |
 | Snapshots | Moderate | Diagnostics state outputs |
-| --- | --- | --- |
 | Ir | Moderate | Intermediate envoy representations |
-| --- | --- | --- |
 | RBAC Bindings | High | Authentication and authorization rules |
-| --- | --- | --- |
 | Secrets | High | Security sensitive config like certs |
 | Logs, Traces, Metrics | Low |
- |
-
-#
-
 
 # Control Families
 
-Inapplicable control families can be skipped and marked as "not applicable".
-
-For each control family, we want to ask:
-
-- What does the project implement for this control?
-- What sorts of data passes through that control?
-  - for example, a component may have sensitive data (Secrets Management), but that data never leaves the component's storage via Networking
-- What can an attacker do with access to this project or component?
-- What's the simplest attack against it?
-- Are there mitigations that we recommend (i.e. "Always use an interstitial firewall")?
-- What happens if the component stops working (via DoS or other means)?
-- Have there been similar vulnerabilities in the past? What were the mitigations?
 
 ## Deployment Architecture (pod and namespace configuration)
 
@@ -345,18 +324,18 @@ Compromised deployment allows traffic inspection or routing manipulation
   - it uses certificates to authenticate clients requesting the services.
   - Data transfer from ingress to backend services in the cluster is encrypted using TLS.
   - The Container image of the Emissary ingress should be immutable.
-  - The data stored in the Kubernetes storage ETDC should be Encrypted.
-  - The communication to and from ETDC should be encrypted.
+  - The data stored in the Kubernetes storage ETCD should be Encrypted.
+  - The communication to and from ETCD should be encrypted.
   - a web hook exposed from the APIEXT should verify the source when it gets a request.
-- **Data** : The Initial configurations of the Emissary Ingress stored in ETDC.
-  - The Snapshot of changes in the cluster is being transferred from WATT to Diadg via ETDC.
-  - The CRD version snapshot is stored in ETDC and being transferred to Webhook.
+- **Data** : The Initial configurations of the Emissary Ingress stored in ETCD.
+  - The Snapshot of changes in the cluster is being transferred from WATT to Diadg via ETCD.
+  - The CRD version snapshot is stored in ETCD and being transferred to Webhook.
   - The data signal and notifications are being sent from WATT and Diadg.
-  - The Envoy config is transferred and persisted in ETDC
+  - The Envoy config is transferred and persisted in file system internal to pods.
 - **Threat** :
   - The Container image can be altered by the attacker in the storage or while being transferred.
-  - The data stored in ETDC is not encrypted by default, Any attacker who has access to ETDC through other means can hamper the Emissary ingress data stored in ETDC.
-  - The communication to and from ETDC is not encrypted, Attacker can intercept the traffic and hamper the data.
+  - The data stored in ETCD is not encrypted by default, Any attacker who has access to ETCD through other means can hamper the Emissary ingress data stored in ETCD.
+  - The communication to and from ETCD is not encrypted, Attacker can intercept the traffic and hamper the data.
   - The Webhook exposed from APIEXT does not have any mechanism to verify the source of its request. This allows the attacker to change the CRD's.
   - Attackers may attempt to hijack an established TLS session to gain unauthorized access.
   - If the certificate authority (CA) that issued the TLS certificate is compromised, attackers could create fraudulent certificates for the target domain.
@@ -394,21 +373,19 @@ Compromised deployment allows traffic inspection or routing manipulation
 ## Storage
 
 - Control:
-  - All data involved in the process are stored in Kubernetes Storage, **ETDC**.
-  - Cache storage and temp storage is also used for emissary ingress functions.
-  - Data stored in **ETDC** is shared among different components of Emissary ingress. Example: Snapshot stored by **WATT** is fetched by **Diadg**.
+  - A snapshot of the custom resources is stored in Kubernetes Storage, **ETCD**.
+  - Cache storage and Pod's internal file system storage is also used for emissary ingress functions.
 - Data:
   - Config changes applied to Clusters are stored in the form of Snapshots
-  - ETDC stores snapshots of CRD.
+  - ETCD stores snapshots of CRD.
   - **Cache** stores supporting data to generate Envoy Config from Intermediate representation..
-  - **Temporary storage** is used to store the Intermediate representation.
-  - Final Envoy Configs generated are stored in Kubernetes storage **ETDC**.
+  - **Pod's filesystem storage** is used to store the Intermediate representation.
+  - Final Envoy Configs generated are stored in Kubernetes storage **Pod's filesystem storage**.
 - Threat:
-  - Since all the data is mainly stored in ETDC. It becomes a single point of failure. If by any chance data becomes faulty data will be lost permanently.
-  - Attackers can gain administrative access to ETDC servers through other services running in the cluster. Will have complete control over the emissary ingress data as well.
-  - If ETDC becomes unavailable, Emissary Ingress will not be able to operate.
-  - If other services in the kubernetes cluster exhaust the storage in ETDC, Emissary Ingress data might get lost and Emissary ingress will not be able to operate properly.
-  - Data stored in ETDC is not encrypted.
+  - Snice the CRD's snapshot is mainly stored in ETCD and serves as input for Emissary Ingress. It becomes a single point of failure. If by any chance snapshot is maliciously altered, Envoy proxy's config will also be altered.
+  - Attackers can gain administrative access to ETCD servers through other services running in the cluster. Will have complete control over the emissary ingress data as well.
+  - If ETCD becomes unavailable, Emissary Ingress will not be able to operate.
+  - Data stored in ETCD and Pod's filesystem is not encrypted.
 
 ## Audit and Logging
 
