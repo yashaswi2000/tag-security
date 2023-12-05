@@ -27,6 +27,7 @@ Express Learning course provided by Linux Foundation Training & Certification:
 * [Secure development practices](#secure-development-practices)
 * [Security issue resolution](#security-issue-resolution)
 * [Appendix](#appendix)
+* [Threat Model](#emissary-ingress-lightweight-threat-model)
 
 ## Metadata
 
@@ -37,7 +38,7 @@ A table at the top for quick reference information, later used for indexing.
 | Software | [emissary](https://github.com/emissary-ingress/emissary)  |
 | Security Provider | No |
 | Languages | Python, Golang, make, shell, html, dockerfile |
-| SBOM | Software bill of materials. https://github.com/emissary-ingress/emissary/blob/master/go.mod and https://app.fossa.com/attribution/2a534448-1fa3-442b-b385-caa8c1178c99 |
+| SBOM | Software bill of materials - (Not being generated currently, issue created []()). https://app.fossa.com/attribution/2a534448-1fa3-442b-b385-caa8c1178c99 |
 | | |
 
 ### Security links
@@ -117,6 +118,7 @@ https://kubernetes.io/docs/concepts/security/api-server-bypass-risks/
 - Emissary-ingress could not natively support third user authentication. 
 - Emissary-ingress primarily concerns itself with the administration of incoming external traffic at the boundary and may not have direct authority over or ensure the security of internal network connections. 
 - Emissary-ingress does not provide encryption key management for apps. 
+- Emissary-ingress does not focus on Certificate configuration/management and its recommended to use [Cert-managers](https://www.getambassador.io/docs/edge-stack/latest/howtos/cert-manager#using-cert-manager)
 
 
 ## Self-Assessment Use
@@ -141,16 +143,14 @@ together, this document and the joint-assessment serve as a cornerstone for if a
 * Rate Limiting: The RateLimitService is a custom resource that also allows users to provide information about services that Emissary should reach out to for incoming requests regarding rate limiting decisions. Service implementations should be provided and will allow users to attach custom labels to requests, attach labels to request properties (client IP, hostnames, et cetera), and rate limit based on keys.
 * TLS Support: A wide variety of configuration options for TLS is available to users and allows them to specify the minimum or maximum version of TLS allowed, require client certificates, specify a list of permitted cipher suites and ECDH curves, and provide a certificate revocation list.
 * Availability: Built-in configuration options for CORS and circuit breaker configurations are available for use to help prevent service overloading. Configuring the maximum number of simultaneous connections, requests, pending requests, and retries prevent system abuse alongside IP allow and deny list configurations. For more specific use cases, several other miscellaneous options are available, including Lua scripts that run on each request. For example, with Lua, users commonly remove request headers before reaching AuthService and RatelimitService so that they can add custom headers that correspond to billing or authentication purposes, preventing end users from spoofing them.
-* Filtering Malicious Traffic: Emissary maintains a publicly available Web Application Firewall configuration based on the OWASP core rule set. This satisfies PCI 6.6 compliance requirements and enables users to further configure their own custom security on the firewall.
-* Observability: Access logs are placed on stdout for reading using kubectl logs. Format and local destination can be configured to the administrator’s wishes while using envoy_log_ settings. Information collected includes service, driver (HTTP or TLS), driver configuration, additional log headers, the maximum number of seconds to buffer access before sending logs to ALS, and a soft size limit for the access log buffer, among other options.
-* Emissary-ingress puts the access logs on stdout for reading using kubectl logs. Local destination and log format can be configured to the administrator’s wishes using envoy_log_ settings, however these options only allow for logging locally to Emissary-ingress’ Pod. Information collected includes but is not limited to service, driver (HTTP or TLS access), driver configuration, additional log headers, the maximum number of seconds to buffer access before sending them to ALS, and a soft size limit for the access log buffer.
+* Observability: Access logs are placed on stdout for reading using kubectl logs. Format and local destination can be configured to the administrator’s wishes while using envoy_log_ settings. Information collected includes service, driver (HTTP or TLS), driver configuration, additional log headers, the maximum number of seconds to buffer access before sending logs to ALS, and a soft size limit for the access log buffer, it also supports exporting logs using a CRD [LogService](https://www.getambassador.io/docs/edge-stack/latest/topics/running/services/log-service#log-service)
 
 
 ## Project compliance
 
 * Compliance.  List any security standards or sub-sections the project is
   already documented as meeting (PCI-DSS, COBIT, ISO, GDPR, etc.).
-  - PCI DSS 6.6 compliance
+  - PCI DSS 6.6 compliance (Only on the Enterprise Version of emissary EdgeStack)
 
 ## Secure development practices
 
@@ -241,21 +241,16 @@ record in catching issues in code review or automated testing.
 * References
   
 [Amazon Web Services](https://aws.amazon.com/api-gateway/)
-
 [Kong](https://docs.konghq.com/gateway/latest/)
-
 [Isto](https://istio.io/latest/about/service-mesh/)
 
-#
-
-
-# \<Emissary-Ingress\> Lightweight Threat Model
+## Emissary-Ingress Lightweight Threat Model
 
 [_TAG-Security_](https://github.com/cncf/tag-security) _\<2023-11-24\>_
 
 _\<_[_https://github.com/Rana-KV/tag-security/issues/3_](https://github.com/Rana-KV/tag-security/issues/3)_\>_
 
-# Overview
+### Overview
 
 - Project: emissary-Ingress [https://github.com/emissary-ingress/emissary/tree/master](https://github.com/emissary-ingress/emissary/tree/master)
 - Intended usage: open-source Kubernetes-native API Gateway
@@ -273,11 +268,11 @@ _\<_[_https://github.com/Rana-KV/tag-security/issues/3_](https://github.com/Rana
 - Attendees and representation:
   - \<name (representation, email/GitHub contacts)\>
 
-# Threat Modeling Notes
+### Threat Modeling Notes
 
 The emissary-Ingress (emissary) project is an open-source API gateway that is native to Kubernetes and lets you control inbound traffic to your apps in a Kubernetes cluster. It is powered by an envoy proxy, and the emissary acts as a control plane which looks for changes to CRDs and updates the envoy proxy configurations in real-time. It is resilient and high performance comes from using Kubernetes and Envoy. Supports different types of protocols integrates well with service meshes and also provides features like authentication, TLS termination, rate limiting, and WAF integrations.
 
-# Data Dictionary
+### Data Dictionary
 
 | **Name** | **Classification/Sensitivity** | **Comments** |
 | --- | --- | --- |
@@ -289,15 +284,12 @@ The emissary-Ingress (emissary) project is an open-source API gateway that is na
 | Secrets | High | Security sensitive config like certs |
 | Logs, Traces, Metrics | Low |
 
-# Control Families
+### Control Families
 
 
-## Deployment Architecture (pod and namespace configuration)
+#### Deployment Architecture (pod and namespace configuration)
 
-Emissary Ingress components are typically deployed into one namespace:
-
-- **emissary-system** - Holds core infrastructure control plane pods like diagd, ambex etc. May also have an envoy ingress controller.
-
+-  Emissary has ambassador_id in CRDs which tells emissary what specific resources to monitor for changes.
 Pods
 
 - **emissary-ingress** - Main Emissary pod with control plane and Envoy proxy.
@@ -312,13 +304,13 @@ Threats:
 
 Compromised deployment allows traffic inspection or routing manipulation
 
-## Networking (internal and external)
+#### Networking (internal and external)
 
 - Controls: pod networking and Kubernetes services for internal communication(internal). Envoy proxies handle all external ingress traffic and routing
 - Data: Sensitive snapshot and configuration data shared between control plane components
 - Threats: A simple attack is accessing diagd/Ambex ports or interfaces meant only for Envoy. Could intercept sensitive external requests or route to malicious backends.
 
-## Cryptography
+#### Cryptography
 
 - **Controls** : all the network traffic outgoing from the emissary ingress is encrypted using TLS.
   - it uses certificates to authenticate clients requesting the services.
@@ -339,16 +331,14 @@ Compromised deployment allows traffic inspection or routing manipulation
   - The Webhook exposed from APIEXT does not have any mechanism to verify the source of its request. This allows the attacker to change the CRD's.
   - Attackers may attempt to hijack an established TLS session to gain unauthorized access.
   - If the certificate authority (CA) that issued the TLS certificate is compromised, attackers could create fraudulent certificates for the target domain.
-  - Expired, revoked, or improperly configured certificates can lead to security vulnerabilities.
-  - Outage of certificate services blocks ingress traffic
 
-## Multi-tenancy Isolation
+#### Multi-tenancy Isolation
 
 - Controls: Relies on Kubernetes namespaces, RBAC, network policies for isolation. Tenant application traffic and access credentials are isolated.
 - Data: isolated namespaces for each tenant and their routing, filters, configuration data.
 - Threats: Loss of RBAC controls risks tenant data leakage, compromised namespace could provide visibility across tenants.
 
-## Secrets Management
+#### Secrets Management
 
 - Controls:
   - N/A
@@ -357,7 +347,7 @@ Compromised deployment allows traffic inspection or routing manipulation
 - Threats:
   - When hackers or unauthorized programs have access to the Kubernetes secrets which are used by the emissary ingress then it may result in the data breaches.
 
-## Authentication and Authorization
+#### Authentication and Authorization
 
 - Controls:
   - The roles are assigned by authorizations and the Kubernetes RBAC. which manages access controls for emissary-ingress.
@@ -370,7 +360,7 @@ Compromised deployment allows traffic inspection or routing manipulation
   - Incorrectly set RBAC rules may result in providing inappropriate privileges.
   - Credential theft can gain access to the Kubernetes cluster
 
-## Storage
+#### Storage
 
 - Control:
   - A snapshot of the custom resources is stored in Kubernetes Storage, **ETCD**.
@@ -387,7 +377,7 @@ Compromised deployment allows traffic inspection or routing manipulation
   - If ETCD becomes unavailable, Emissary Ingress will not be able to operate.
   - Data stored in ETCD and Pod's filesystem is not encrypted.
 
-## Audit and Logging
+#### Audit and Logging
 
 - Control:
   - Encryption of logs in transit and at rest via keys and certificates
@@ -400,7 +390,7 @@ Compromised deployment allows traffic inspection or routing manipulation
   - Tampering and deletion via disabling of log backup policies
   - Overwriting of log data
 
-# Threat Scenarios
+### Threat Scenarios
 
 We aim to identify threats at the lowest common denominator of deployment: consider the project at runtime, in a standard (non-hardened) deployment, on a major cloud provider.
 
@@ -417,7 +407,7 @@ For each area, consider:
 - An Internal Attacker with access to hosting environment (cluster or provider)
 - A Malicious Internal User
 
-## Theoretical Threats(STRIDE)
+#### Theoretical Threats(STRIDE)
 
 - SPOOFING
   - Threat-01-S: An outside attacker could do IP address spoofing to bypass access controls and gain information about resources he should not.
@@ -459,7 +449,7 @@ An attacker could find vulnerabilities that can be leveraged to repeatedly crash
 
 - Deploy a robust tracking and log system to identify any illegal login attempts, abnormal activities, or changes in authorization that may suggest an increase in privileges.
 
-# Potential Controls Summary
+### Potential Controls Summary
 
 Mapping of threats to potential controls or remediations
 
@@ -478,7 +468,7 @@ Mapping of threats to potential controls or remediations
 | Attack on data at rest | The data stored in ETDC is not encrypted by default, Any attacker who has access to ETDC through other means can hamper the Emissary ingress data stored in ETDC.| To encrypt data stored in ETDC, use the --experimental-encryption-provider-config flag when starting the API server, specifying encryption providers.| [https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/](https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/) |
 | Attack on data in transit | The communication to and from ETDC is not encrypted, Attacker can intercept the traffic and hamper the data. | Enable encryption for etcd communication using Transport Layer Security (TLS). This ensures that data in transit is secure. | [https://kubernetes.io/docs/tasks/tls/managing-tls-in-a-cluster/](https://kubernetes.io/docs/tasks/tls/managing-tls-in-a-cluster/)|
 | Multi-Tenancy Isolation |
-| Loss of RBAC controls risks tenant data leakage, and compromised namespace could provide visibility across tenants. | Multi tenancy isolation is critical in platforms that provide shared production environments. | Emissary uses emissary-system namespace for each deployment. Tight and highly restrictive RBAC policies should restrict this. |
+| Loss of RBAC controls risks tenant data leakage, and compromised namespace could provide visibility across tenants. | Multi tenancy isolation is critical in platforms that provide shared production environments. | Emissary CRD's have a ambassador_id field that needs to be set to configure multi tenancy. Tight and highly restrictive RBAC policies should restrict this. |
 | Repudiation |
 | Role-Based Access Control | Emissary-ingress will need RBAC permissions to get, list, watch, and update Ingress resources | Enact strict RBAC services – which are already provided within Emissary and Kubernetes – to prevent unauthorized access. This type of access is required to get, list, watch, and update Ingress resources. | [Emissary-ingress](https://www.getambassador.io/docs/emissary/latest/topics/running/ingress-controller#:~:text=Emissary%2Dingress%20will%20need%20RBAC,watch%2C%20and%20update%20Ingress%20resources.&text=This%20is%20included%20by%20default,resource%20with%20the%20correct%20ingress.) |
 | Audit and Logging |
