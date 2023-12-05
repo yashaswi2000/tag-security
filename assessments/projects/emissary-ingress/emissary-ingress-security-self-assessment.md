@@ -38,7 +38,7 @@ A table at the top for quick reference information, later used for indexing.
 | Software | [emissary](https://github.com/emissary-ingress/emissary)  |
 | Security Provider | No |
 | Languages | Python, Golang, make, shell, html, dockerfile |
-| SBOM | Software bill of materials - (Not being generated currently, issue created []()). https://app.fossa.com/attribution/2a534448-1fa3-442b-b385-caa8c1178c99 |
+| SBOM | Software bill of materials - (Not being generated currently, issue created [link](https://github.com/emissary-ingress/emissary/issues/5466#issue-2027137698)). https://app.fossa.com/attribution/2a534448-1fa3-442b-b385-caa8c1178c99 |
 | | |
 
 ### Security links
